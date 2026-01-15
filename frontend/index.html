@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Active Recall Study Assistant - A tool for better learning through active recall and spaced repetition">
+    <title>Active Recall Study Assistant</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">📚</span>
+                <span class="logo-text">Recall</span>
+            </div>
+
+            <div class="nav-section">
+                <button class="nav-btn active" data-view="notes" id="nav-notes">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-label">Notes</span>
+                </button>
+                <button class="nav-btn" data-view="quiz" id="nav-quiz">
+                    <span class="nav-icon">❓</span>
+                    <span class="nav-label">Quiz</span>
+                </button>
+                <button class="nav-btn" data-view="recall" id="nav-recall">
+                    <span class="nav-icon">🧠</span>
+                    <span class="nav-label">Recall</span>
+                </button>
+            </div>
+
+            <div class="nav-footer">
+                <div class="status-indicator" id="llm-status">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Checking LLM...</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Notes View -->
+            <section class="view active" id="notes-view">
+                <header class="view-header">
+                    <h1>Notes</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" id="import-btn">
+                            <span>↑</span> Import
+                        </button>
+                        <button class="btn btn-secondary" id="export-all-btn">
+                            <span>↓</span> Export All
+                        </button>
+                        <button class="btn btn-primary" id="new-section-btn">
+                            <span>+</span> New Section
+                        </button>
+                    </div>
+                </header>
+
+                <div class="notes-container">
+                    <!-- Section List -->
+                    <aside class="sections-list" id="sections-list">
+                        <div class="list-header">
+                            <span>Sections</span>
+                        </div>
+                        <div class="list-content" id="sections-list-content">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </aside>
+
+                    <!-- Editor Area -->
+                    <div class="editor-area">
+                        <div class="editor-placeholder" id="editor-placeholder">
+                            <div class="placeholder-content">
+                                <span class="placeholder-icon">📝</span>
+                                <p>Select a section to edit or create a new one</p>
+                            </div>
+                        </div>
+                        <div class="editor-active hidden" id="editor-active">
+                            <div class="editor-toolbar">
+                                <input type="text" class="section-title-input" id="section-title"
+                                    placeholder="Section Title">
+                                <div class="toolbar-actions">
+                                    <button class="btn btn-icon" id="export-section-btn"
+                                        title="Export Section">↓</button>
+                                    <button class="btn btn-icon btn-danger" id="delete-section-btn"
+                                        title="Delete Section">🗑</button>
+                                </div>
+                            </div>
+                            <textarea class="notes-editor" id="notes-editor"
+                                placeholder="Start typing your notes here..."></textarea>
+                            <div class="editor-footer">
+                                <span class="save-status" id="save-status">All changes saved</span>
+                                <button class="btn btn-primary" id="save-section-btn">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quiz View -->
+            <section class="view hidden" id="quiz-view">
+                <header class="view-header">
+                    <h1>Quiz Mode</h1>
+                </header>
+
+                <div class="quiz-container">
+                    <div class="quiz-setup" id="quiz-setup">
+                        <div class="setup-card">
+                            <h2>Generate Quiz Questions</h2>
+                            <p class="setup-desc">Select a section and configure your quiz</p>
+
+                            <div class="form-group">
+                                <label for="quiz-section-select">Select Section</label>
+                                <select id="quiz-section-select" class="form-select">
+                                    <option value="">Choose a section...</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="question-count">Number of Questions</label>
+                                <select id="question-count" class="form-select">
+                                    <option value="3">3 Questions</option>
+                                    <option value="5" selected>5 Questions</option>
+                                    <option value="10">10 Questions</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="question-type">Question Type</label>
+                                <select id="question-type" class="form-select">
+                                    <option value="mixed">Mixed</option>
+                                    <option value="mcq">Multiple Choice Only</option>
+                                    <option value="free_response">Free Response Only</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="custom-instructions">Custom Instructions (Optional)</label>
+                                <textarea id="custom-instructions" class="form-textarea"
+                                    placeholder="e.g., Focus on dates and key figures, make questions challenging, avoid yes/no questions..."></textarea>
+                                <span class="form-hint">Add any preferences for how questions should be generated</span>
+                            </div>
+
+                            <button class="btn btn-primary btn-lg" id="generate-quiz-btn">
+                                Generate Questions
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Active -->
+                    <div class="quiz-active hidden" id="quiz-active">
+                        <div class="quiz-progress">
+                            <span id="quiz-progress-text">Question 1 of 5</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="quiz-progress-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="question-card" id="question-card">
+                            <!-- Populated by JavaScript -->
+                        </div>
+
+                        <div class="quiz-navigation">
+                            <button class="btn btn-secondary" id="quiz-prev-btn" disabled>Previous</button>
+                            <button class="btn btn-primary" id="quiz-next-btn">Next</button>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Results -->
+                    <div class="quiz-results hidden" id="quiz-results">
+                        <div class="results-summary-card">
+                            <h2>Quiz Complete!</h2>
+                            <div class="score-display" id="score-display">
+                                <span class="score-value">0/0</span>
+                                <span class="score-label">Correct</span>
+                            </div>
+                            <p class="results-summary-text" id="results-summary-text"></p>
+                        </div>
+
+                        <!-- Review Incorrect Questions -->
+                        <div class="review-section" id="review-section">
+                            <h3>📖 Review Incorrect Answers</h3>
+                            <div class="review-questions" id="review-questions">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <div class="results-actions">
+                            <button class="btn btn-secondary" id="quiz-restart-btn">Try Another Quiz</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recall View -->
+            <section class="view hidden" id="recall-view">
+                <header class="view-header">
+                    <h1>Recall Practice</h1>
+                </header>
+
+                <div class="recall-container">
+                    <!-- Recall Setup -->
+                    <div class="recall-setup" id="recall-setup">
+                        <div class="setup-card">
+                            <h2>Test Your Memory</h2>
+                            <p class="setup-desc">Select a section, then write everything you remember without looking
+                                at the notes</p>
+
+                            <div class="form-group">
+                                <label for="recall-section-select">Select Section</label>
+                                <select id="recall-section-select" class="form-select">
+                                    <option value="">Choose a section...</option>
+                                </select>
+                            </div>
+
+                            <button class="btn btn-primary btn-lg" id="start-recall-btn">
+                                Start Recall Practice
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recall Active -->
+                    <div class="recall-active hidden" id="recall-active">
+                        <div class="recall-header">
+                            <h2 id="recall-section-title">Section Name</h2>
+                            <p class="recall-instructions">Write everything you remember about this topic. Don't worry
+                                about order - just get your thoughts down.</p>
+                        </div>
+
+                        <textarea class="recall-textarea" id="recall-textarea"
+                            placeholder="Start typing what you remember..."></textarea>
+
+                        <div class="recall-actions">
+                            <button class="btn btn-secondary" id="cancel-recall-btn">Cancel</button>
+                            <button class="btn btn-primary" id="submit-recall-btn">Submit for Analysis</button>
+                        </div>
+                    </div>
+
+                    <!-- Recall Results -->
+                    <div class="recall-results hidden" id="recall-results">
+                        <div class="results-header">
+                            <h2>Analysis Results</h2>
+                            <div class="recall-score" id="recall-score">
+                                <span class="score-circle">
+                                    <span class="score-number">0</span>
+                                    <span class="score-percent">%</span>
+                                </span>
+                                <span class="score-label">Recall Score</span>
+                            </div>
+                        </div>
+
+                        <div class="analysis-sections">
+                            <div class="analysis-section correct-section" id="correct-section">
+                                <h3>✅ What You Got Right</h3>
+                                <ul id="correct-points"></ul>
+                            </div>
+
+                            <div class="analysis-section missed-section" id="missed-section">
+                                <h3>❌ What You Missed</h3>
+                                <div id="missed-points"></div>
+                            </div>
+
+                            <div class="analysis-section inaccuracy-section hidden" id="inaccuracy-section">
+                                <h3>⚠️ Corrections Needed</h3>
+                                <div id="inaccuracy-points"></div>
+                            </div>
+
+                            <div class="analysis-section suggestions-section" id="suggestions-section">
+                                <h3>💡 Suggestions</h3>
+                                <ul id="suggestion-points"></ul>
+                            </div>
+
+                            <div class="analysis-summary" id="analysis-summary">
+                                <h3>Summary</h3>
+                                <p id="summary-text"></p>
+                            </div>
+                        </div>
+
+                        <div class="results-actions">
+                            <button class="btn btn-secondary" id="view-notes-btn">View Original Notes</button>
+                            <button class="btn btn-primary" id="try-again-btn">Practice Again</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for Import -->
+    <div class="modal hidden" id="import-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Import Notes</h2>
+                <button class="modal-close" id="import-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Paste your exported JSON or select a file:</p>
+                <textarea class="import-textarea" id="import-textarea"
+                    placeholder='{"sections": [{"title": "...", "content": "..."}]}'></textarea>
+                <div class="file-upload">
+                    <input type="file" id="import-file" accept=".json">
+                    <label for="import-file" class="btn btn-secondary">Choose File</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="import-cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="import-confirm-btn">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p id="loading-text">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/notes.js"></script>
+    <script src="/static/js/quiz.js"></script>
+    <script src="/static/js/recall.js"></script>
+</body>
+
+</html>
