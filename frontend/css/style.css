@@ -327,9 +327,39 @@ body {
    ======================================== */
 .notes-container {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 240px 1fr;
     gap: var(--space-lg);
     height: calc(100vh - 140px);
+}
+
+@media (max-width: 1200px) {
+    .notes-container {
+        grid-template-columns: 200px 1fr;
+        gap: var(--space-md);
+    }
+
+    .section-item {
+        padding: var(--space-sm) var(--space-md);
+    }
+}
+
+@media (max-width: 992px) {
+    .notes-container {
+        grid-template-columns: 180px 1fr;
+        gap: var(--space-sm);
+    }
+
+    .section-item {
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    .list-header {
+        padding: var(--space-sm);
+    }
+
+    .section-item-title {
+        font-size: var(--font-size-xs);
+    }
 }
 
 .sections-list {
