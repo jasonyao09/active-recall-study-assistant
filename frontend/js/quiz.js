@@ -1,15 +1,15 @@
 /**
- * Quiz Module
- * Handles question generation and quiz flow
+ * Quiz Module with Multi-Section Support
  */
 
 // Quiz state
 const quizState = {
     questions: [],
     currentIndex: 0,
-    answers: [],  // User's answers
-    results: [],  // Whether each answer was correct
-    showingFeedback: false
+    answers: [],
+    results: [],
+    showingFeedback: false,
+    selectedSectionIds: []
 };
 
 // ========================================
@@ -17,12 +17,11 @@ const quizState = {
 // ========================================
 
 async function generateQuiz() {
-    const sectionId = document.getElementById('quiz-section-select').value;
-    const numQuestions = parseInt(document.getElementById('question-count').value);
-    const questionType = document.getElementById('question-type').value;
+    // Get selected sections from checklist
+    const selectedIds = getSelectedSectionIds('quiz-section-checklist');
 
-    if (!sectionId) {
-        showToast('Please select a section', 'error');
+    if (selectedIds.length === 0) {
+        showToast('Please select at least one section', 'error');
         return;
     }
 
@@ -32,19 +31,34 @@ async function generateQuiz() {
         return;
     }
 
+    let numQuestions = parseInt(document.getElementById('question-count').value);
+
+    // Validate number of questions
+    if (isNaN(numQuestions) || numQuestions < 1) {
+        numQuestions = 1;
+        document.getElementById('question-count').value = 1;
+    } else if (numQuestions > 20) {
+        numQuestions = 20;
+        document.getElementById('question-count').value = 20;
+        showToast('Maximum 20 questions allowed', 'info');
+    }
+
+    const questionType = document.getElementById('question-type').value;
+    const customInstructions = document.getElementById('custom-instructions').value;
+    const includeSubsections = document.getElementById('quiz-include-subsections').checked;
+
+
     try {
         showLoading('Generating questions... This may take a moment.');
-
-        // Get custom instructions
-        const customInstructions = document.getElementById('custom-instructions').value;
 
         const questions = await api('/api/quiz/generate', {
             method: 'POST',
             body: {
-                section_id: parseInt(sectionId),
+                section_ids: selectedIds,
                 num_questions: numQuestions,
                 question_type: questionType,
-                custom_instructions: customInstructions
+                custom_instructions: customInstructions,
+                include_subsections: includeSubsections
             }
         });
 
@@ -61,6 +75,7 @@ async function generateQuiz() {
         quizState.answers = new Array(questions.length).fill(null);
         quizState.results = new Array(questions.length).fill(null);
         quizState.showingFeedback = false;
+        quizState.selectedSectionIds = selectedIds;
 
         // Switch to quiz active view
         document.getElementById('quiz-setup').classList.add('hidden');
@@ -148,7 +163,6 @@ function renderQuestion() {
         }
     }
 
-    // Update navigation buttons
     updateNavigationButtons();
 }
 
@@ -202,10 +216,8 @@ function updateNavigationButtons() {
 
 async function handleNext() {
     if (!quizState.showingFeedback) {
-        // Check current answer
         await checkCurrentAnswer();
     } else {
-        // Move to next question or results
         if (quizState.currentIndex === quizState.questions.length - 1) {
             showResults();
         } else {

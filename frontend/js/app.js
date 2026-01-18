@@ -19,6 +19,16 @@ const state = {
 // ========================================
 
 /**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
  * Make API request
  */
 async function api(endpoint, options = {}) {

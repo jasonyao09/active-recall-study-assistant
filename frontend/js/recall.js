@@ -1,24 +1,24 @@
 /**
- * Recall Module
- * Handles blind recall practice and LLM analysis
+ * Recall Module with Multi-Section Support
  */
 
 // Recall state
 const recallState = {
-    sectionId: null,
-    sectionTitle: '',
-    analysisResult: null
+    selectedSectionIds: [],
+    selectedSectionTitles: [],
+    isActive: false
 };
 
 // ========================================
-// Recall Flow
+// Recall Practice Flow
 // ========================================
 
-function startRecall() {
-    const sectionId = document.getElementById('recall-section-select').value;
+function startRecallPractice() {
+    // Get selected sections from checklist
+    const selectedIds = getSelectedSectionIds('recall-section-checklist');
 
-    if (!sectionId) {
-        showToast('Please select a section', 'error');
+    if (selectedIds.length === 0) {
+        showToast('Please select at least one section', 'error');
         return;
     }
 
@@ -28,31 +28,30 @@ function startRecall() {
         return;
     }
 
-    const section = state.sections.find(s => s.id === parseInt(sectionId));
-    if (!section) return;
+    recallState.selectedSectionIds = selectedIds;
+    recallState.isActive = true;
 
-    recallState.sectionId = parseInt(sectionId);
-    recallState.sectionTitle = section.title;
+    // Get section titles for display
+    const titles = selectedIds.map(id => {
+        const section = notesState.flatSections.find(s => s.id === id);
+        return section ? section.title : 'Unknown';
+    });
+    recallState.selectedSectionTitles = titles;
 
     // Update UI
-    document.getElementById('recall-section-title').textContent = section.title;
-    document.getElementById('recall-textarea').value = '';
+    const titleDisplay = titles.length > 2
+        ? `${titles.slice(0, 2).join(', ')} and ${titles.length - 2} more`
+        : titles.join(', ');
+    document.getElementById('recall-section-title').textContent = titleDisplay;
 
-    // Switch views
+    // Show recall input
     document.getElementById('recall-setup').classList.add('hidden');
     document.getElementById('recall-active').classList.remove('hidden');
     document.getElementById('recall-results').classList.add('hidden');
 
-    // Focus textarea
+    // Clear previous input
+    document.getElementById('recall-textarea').value = '';
     document.getElementById('recall-textarea').focus();
-}
-
-function cancelRecall() {
-    recallState.sectionId = null;
-    recallState.sectionTitle = '';
-
-    document.getElementById('recall-setup').classList.remove('hidden');
-    document.getElementById('recall-active').classList.add('hidden');
 }
 
 async function submitRecall() {
@@ -63,123 +62,142 @@ async function submitRecall() {
         return;
     }
 
+    if (recallState.selectedSectionIds.length === 0) {
+        showToast('No sections selected', 'error');
+        return;
+    }
+
+    const includeSubsections = document.getElementById('recall-include-subsections').checked;
+
     try {
         showLoading('Analyzing your recall... This may take a moment.');
 
         const result = await api('/api/recall/analyze', {
             method: 'POST',
             body: {
-                section_id: recallState.sectionId,
-                user_recall: userRecall
+                section_ids: recallState.selectedSectionIds,
+                user_recall: userRecall,
+                include_subsections: includeSubsections
             }
         });
 
         hideLoading();
 
-        recallState.analysisResult = result;
-        showAnalysisResults(result.analysis);
-        showToast('Analysis complete', 'success');
+        // Show results
+        displayRecallResults(result);
+
     } catch (error) {
         hideLoading();
         showToast(`Analysis failed: ${error.message}`, 'error');
     }
 }
 
+function cancelRecall() {
+    recallState.isActive = false;
+    recallState.selectedSectionIds = [];
+
+    document.getElementById('recall-setup').classList.remove('hidden');
+    document.getElementById('recall-active').classList.add('hidden');
+    document.getElementById('recall-results').classList.add('hidden');
+}
+
 // ========================================
 // Results Display
 // ========================================
 
-function showAnalysisResults(analysis) {
+function displayRecallResults(result) {
     // Switch to results view
     document.getElementById('recall-active').classList.add('hidden');
     document.getElementById('recall-results').classList.remove('hidden');
 
+    const analysis = result.analysis || {};
+
     // Update score
     const score = analysis.score || 0;
-    document.getElementById('recall-score').innerHTML = `
-        <span class="score-circle">
-            <span class="score-number">${score}</span>
-            <span class="score-percent">%</span>
-        </span>
-        <span class="score-label">Recall Score</span>
-    `;
+    document.querySelector('#recall-score .score-number').textContent = score;
 
     // Correct points
-    const correctSection = document.getElementById('correct-section');
-    const correctPoints = document.getElementById('correct-points');
+    const correctList = document.getElementById('correct-points');
     if (analysis.correct_points && analysis.correct_points.length > 0) {
-        correctSection.classList.remove('hidden');
-        correctPoints.innerHTML = analysis.correct_points
-            .map(point => `<li>${escapeHtml(point)}</li>`)
-            .join('');
+        correctList.innerHTML = analysis.correct_points.map(point =>
+            `<li>${escapeHtml(point)}</li>`
+        ).join('');
+        document.getElementById('correct-section').classList.remove('hidden');
     } else {
-        correctSection.classList.add('hidden');
+        document.getElementById('correct-section').classList.add('hidden');
     }
 
     // Missed points
-    const missedSection = document.getElementById('missed-section');
-    const missedPoints = document.getElementById('missed-points');
+    const missedContainer = document.getElementById('missed-points');
     if (analysis.missed_points && analysis.missed_points.length > 0) {
-        missedSection.classList.remove('hidden');
-        missedPoints.innerHTML = analysis.missed_points
-            .map(item => `
-                <div class="missed-item">
-                    <div class="missed-topic">${escapeHtml(item.topic || 'Missing Information')}</div>
-                    <div class="missed-explanation">${escapeHtml(item.explanation || '')}</div>
-                </div>
-            `)
-            .join('');
+        missedContainer.innerHTML = analysis.missed_points.map(point => {
+            if (typeof point === 'object') {
+                return `
+                    <div class="missed-point-item">
+                        <strong>${escapeHtml(point.topic || 'Topic')}</strong>
+                        <p>${escapeHtml(point.explanation || '')}</p>
+                    </div>
+                `;
+            }
+            return `<div class="missed-point-item">${escapeHtml(point)}</div>`;
+        }).join('');
+        document.getElementById('missed-section').classList.remove('hidden');
     } else {
-        missedSection.classList.add('hidden');
+        document.getElementById('missed-section').classList.add('hidden');
     }
 
     // Inaccuracies
-    const inaccuracySection = document.getElementById('inaccuracy-section');
-    const inaccuracyPoints = document.getElementById('inaccuracy-points');
+    const inaccuracyContainer = document.getElementById('inaccuracy-points');
     if (analysis.inaccuracies && analysis.inaccuracies.length > 0) {
-        inaccuracySection.classList.remove('hidden');
-        inaccuracyPoints.innerHTML = analysis.inaccuracies
-            .map(item => `
-                <div class="inaccuracy-item">
-                    <div class="inaccuracy-said">❌ You said: ${escapeHtml(item.what_they_said || '')}</div>
-                    <div class="inaccuracy-correction">✅ Correct: ${escapeHtml(item.correction || '')}</div>
-                    <div class="inaccuracy-explanation">${escapeHtml(item.explanation || '')}</div>
-                </div>
-            `)
-            .join('');
+        inaccuracyContainer.innerHTML = analysis.inaccuracies.map(item => {
+            if (typeof item === 'object') {
+                return `
+                    <div class="inaccuracy-item">
+                        <div class="inaccuracy-wrong">"${escapeHtml(item.what_they_said || '')}"</div>
+                        <div class="inaccuracy-correction">
+                            <strong>Correction:</strong> ${escapeHtml(item.correction || '')}
+                        </div>
+                        ${item.explanation ? `<div class="inaccuracy-explanation">${escapeHtml(item.explanation)}</div>` : ''}
+                    </div>
+                `;
+            }
+            return `<div class="inaccuracy-item">${escapeHtml(item)}</div>`;
+        }).join('');
+        document.getElementById('inaccuracy-section').classList.remove('hidden');
     } else {
-        inaccuracySection.classList.add('hidden');
+        document.getElementById('inaccuracy-section').classList.add('hidden');
     }
 
     // Suggestions
-    const suggestionsSection = document.getElementById('suggestions-section');
-    const suggestionPoints = document.getElementById('suggestion-points');
+    const suggestionsList = document.getElementById('suggestion-points');
     if (analysis.suggestions && analysis.suggestions.length > 0) {
-        suggestionsSection.classList.remove('hidden');
-        suggestionPoints.innerHTML = analysis.suggestions
-            .map(suggestion => `<li>${escapeHtml(suggestion)}</li>`)
-            .join('');
+        suggestionsList.innerHTML = analysis.suggestions.map(suggestion =>
+            `<li>${escapeHtml(suggestion)}</li>`
+        ).join('');
+        document.getElementById('suggestions-section').classList.remove('hidden');
     } else {
-        suggestionsSection.classList.add('hidden');
+        document.getElementById('suggestions-section').classList.add('hidden');
     }
 
     // Summary
     document.getElementById('summary-text').textContent = analysis.summary || 'No summary available.';
 }
 
+// ========================================
+// View Original Notes
+// ========================================
+
 function viewOriginalNotes() {
-    // Switch to notes view and select the section
-    switchView('notes');
-    if (recallState.sectionId) {
-        selectSection(recallState.sectionId);
+    // Switch to notes view and select first selected section
+    if (recallState.selectedSectionIds.length > 0) {
+        switchView('notes');
+        selectSection(recallState.selectedSectionIds[0]);
     }
 }
 
 function tryAgain() {
     // Reset and go back to setup
-    recallState.sectionId = null;
-    recallState.sectionTitle = '';
-    recallState.analysisResult = null;
+    recallState.isActive = false;
 
     document.getElementById('recall-setup').classList.remove('hidden');
     document.getElementById('recall-active').classList.add('hidden');
@@ -191,9 +209,9 @@ function tryAgain() {
 // ========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('start-recall-btn').addEventListener('click', startRecall);
-    document.getElementById('cancel-recall-btn').addEventListener('click', cancelRecall);
+    document.getElementById('start-recall-btn').addEventListener('click', startRecallPractice);
     document.getElementById('submit-recall-btn').addEventListener('click', submitRecall);
+    document.getElementById('cancel-recall-btn').addEventListener('click', cancelRecall);
     document.getElementById('view-notes-btn').addEventListener('click', viewOriginalNotes);
     document.getElementById('try-again-btn').addEventListener('click', tryAgain);
 });

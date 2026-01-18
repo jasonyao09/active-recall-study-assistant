@@ -7,8 +7,11 @@
     <meta name="description"
         content="Active Recall Study Assistant - A tool for better learning through active recall and spaced repetition">
     <title>Active Recall Study Assistant</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=15">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Quill WYSIWYG Editor -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 </head>
 
 <body>
@@ -63,13 +66,13 @@
                 </header>
 
                 <div class="notes-container">
-                    <!-- Section List -->
+                    <!-- Section List (Hierarchical) -->
                     <aside class="sections-list" id="sections-list">
                         <div class="list-header">
                             <span>Sections</span>
                         </div>
                         <div class="list-content" id="sections-list-content">
-                            <!-- Populated by JavaScript -->
+                            <!-- Populated by JavaScript with hierarchical tree -->
                         </div>
                     </aside>
 
@@ -82,21 +85,34 @@
                             </div>
                         </div>
                         <div class="editor-active hidden" id="editor-active">
-                            <div class="editor-toolbar">
-                                <input type="text" class="section-title-input" id="section-title"
-                                    placeholder="Section Title">
-                                <div class="toolbar-actions">
-                                    <button class="btn btn-icon" id="export-section-btn"
-                                        title="Export Section">↓</button>
-                                    <button class="btn btn-icon btn-danger" id="delete-section-btn"
-                                        title="Delete Section">🗑</button>
+                            <!-- Header toolbar for parent section -->
+                            <div class="editor-header" id="editor-header">
+                                <div class="editor-header-main">
+                                    <input type="text" class="section-title-input section-title-main" id="section-title"
+                                        placeholder="Section Title">
+                                    <div class="toolbar-actions">
+                                        <button class="btn btn-icon" id="export-section-btn"
+                                            title="Export Section">↓</button>
+                                        <button class="btn btn-icon btn-danger" id="delete-section-btn"
+                                            title="Delete Section">🗑</button>
+                                    </div>
                                 </div>
-                            </div>
-                            <textarea class="notes-editor" id="notes-editor"
-                                placeholder="Start typing your notes here..."></textarea>
-                            <div class="editor-footer">
                                 <span class="save-status" id="save-status">All changes saved</span>
-                                <button class="btn btn-primary" id="save-section-btn">Save</button>
+                            </div>
+                            <div id="shared-toolbar" class="shared-quill-toolbar">
+                                <button class="ql-bold" title="Bold (Ctrl+B)"></button>
+                                <button class="ql-italic" title="Italic (Ctrl+I)"></button>
+                                <button class="ql-underline" title="Underline (Ctrl+U)"></button>
+                                <span class="toolbar-separator"></span>
+                                <button class="ql-list" value="ordered" title="Numbered List"></button>
+                                <button class="ql-list" value="bullet" title="Bullet List"></button>
+                                <span class="toolbar-separator"></span>
+                                <button class="ql-clean" title="Clear Formatting"></button>
+                            </div>
+
+                            <!-- Document-style editor container -->
+                            <div class="document-container" id="document-content">
+                                <!-- Content populated by JavaScript -->
                             </div>
                         </div>
                     </div>
@@ -113,38 +129,44 @@
                     <div class="quiz-setup" id="quiz-setup">
                         <div class="setup-card">
                             <h2>Generate Quiz Questions</h2>
-                            <p class="setup-desc">Select a section and configure your quiz</p>
+                            <p class="setup-desc">Select sections to quiz yourself on</p>
 
                             <div class="form-group">
-                                <label for="quiz-section-select">Select Section</label>
-                                <select id="quiz-section-select" class="form-select">
-                                    <option value="">Choose a section...</option>
-                                </select>
+                                <label>Select Sections</label>
+                                <div class="section-checklist" id="quiz-section-checklist">
+                                    <!-- Populated by JavaScript with checkboxes -->
+                                </div>
                             </div>
 
                             <div class="form-group">
-                                <label for="question-count">Number of Questions</label>
-                                <select id="question-count" class="form-select">
-                                    <option value="3">3 Questions</option>
-                                    <option value="5" selected>5 Questions</option>
-                                    <option value="10">10 Questions</option>
-                                </select>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="quiz-include-subsections" checked>
+                                    Include subsections
+                                </label>
                             </div>
 
-                            <div class="form-group">
-                                <label for="question-type">Question Type</label>
-                                <select id="question-type" class="form-select">
-                                    <option value="mixed">Mixed</option>
-                                    <option value="mcq">Multiple Choice Only</option>
-                                    <option value="free_response">Free Response Only</option>
-                                </select>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="question-count">Number of Questions</label>
+                                    <input type="number" id="question-count" class="form-input" value="5" min="1"
+                                        max="20" step="1">
+                                    <span class="form-hint">1-20 questions</span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="question-type">Type</label>
+                                    <select id="question-type" class="form-select">
+                                        <option value="mixed">Mixed</option>
+                                        <option value="mcq">MCQ Only</option>
+                                        <option value="free_response">Free Response</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label for="custom-instructions">Custom Instructions (Optional)</label>
                                 <textarea id="custom-instructions" class="form-textarea"
-                                    placeholder="e.g., Focus on dates and key figures, make questions challenging, avoid yes/no questions..."></textarea>
-                                <span class="form-hint">Add any preferences for how questions should be generated</span>
+                                    placeholder="e.g., Focus on dates and key figures, make questions challenging..."></textarea>
                             </div>
 
                             <button class="btn btn-primary btn-lg" id="generate-quiz-btn">
@@ -183,12 +205,9 @@
                             <p class="results-summary-text" id="results-summary-text"></p>
                         </div>
 
-                        <!-- Review Incorrect Questions -->
                         <div class="review-section" id="review-section">
                             <h3>📖 Review Incorrect Answers</h3>
-                            <div class="review-questions" id="review-questions">
-                                <!-- Populated by JavaScript -->
-                            </div>
+                            <div class="review-questions" id="review-questions"></div>
                         </div>
 
                         <div class="results-actions">
@@ -209,14 +228,21 @@
                     <div class="recall-setup" id="recall-setup">
                         <div class="setup-card">
                             <h2>Test Your Memory</h2>
-                            <p class="setup-desc">Select a section, then write everything you remember without looking
+                            <p class="setup-desc">Select sections, then write everything you remember without looking
                                 at the notes</p>
 
                             <div class="form-group">
-                                <label for="recall-section-select">Select Section</label>
-                                <select id="recall-section-select" class="form-select">
-                                    <option value="">Choose a section...</option>
-                                </select>
+                                <label>Select Sections</label>
+                                <div class="section-checklist" id="recall-section-checklist">
+                                    <!-- Populated by JavaScript with checkboxes -->
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="recall-include-subsections" checked>
+                                    Include subsections
+                                </label>
                             </div>
 
                             <button class="btn btn-primary btn-lg" id="start-recall-btn">
@@ -316,6 +342,48 @@
         </div>
     </div>
 
+    <!-- Modal for creating subsection -->
+    <div class="modal hidden" id="subsection-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Subsection</h2>
+                <button class="modal-close" id="subsection-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Creating subsection under: <strong id="subsection-parent-name"></strong></p>
+                <div class="form-group">
+                    <label for="subsection-title">Subsection Title</label>
+                    <input type="text" id="subsection-title" class="form-input" placeholder="Enter title...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="subsection-cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="subsection-create-btn">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reader View Modal -->
+    <div class="modal hidden" id="reader-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-fullscreen">
+            <div class="modal-header reader-header">
+                <h2 id="reader-title">Section Title</h2>
+                <div class="reader-actions">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="reader-include-subsections" checked>
+                        Include subsections
+                    </label>
+                    <button class="modal-close" id="reader-modal-close">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body reader-body" id="reader-content">
+                <!-- Content populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div class="loading-overlay hidden" id="loading-overlay">
         <div class="loading-spinner">
@@ -327,11 +395,11 @@
     <!-- Toast Notifications -->
     <div class="toast-container" id="toast-container"></div>
 
-    <!-- Scripts -->
-    <script src="/static/js/app.js"></script>
-    <script src="/static/js/notes.js"></script>
-    <script src="/static/js/quiz.js"></script>
-    <script src="/static/js/recall.js"></script>
+    <!-- Scripts (v2 = cache bust for hierarchical sections update) -->
+    <script src="/static/js/app.js?v=15"></script>
+    <script src="/static/js/notes.js?v=15"></script>
+    <script src="/static/js/quiz.js?v=15"></script>
+    <script src="/static/js/recall.js?v=15"></script>
 </body>
 
 </html>

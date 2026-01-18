@@ -429,8 +429,279 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow: hidden;
 }
 
+/* Editor Header */
+.editor-header {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+    flex-shrink: 0;
+}
+
+.editor-header-main {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.section-title-main {
+    flex: 1;
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+}
+
+.editor-header .save-status {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-top: var(--space-xs);
+}
+
+/* Shared Quill Toolbar */
+.shared-quill-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.shared-quill-toolbar button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.shared-quill-toolbar button:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--color-accent);
+}
+
+.shared-quill-toolbar button.ql-active {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: white;
+}
+
+.shared-quill-toolbar button svg {
+    width: 16px;
+    height: 16px;
+}
+
+.toolbar-separator {
+    width: 1px;
+    height: 24px;
+    background: var(--color-border);
+    margin: 0 var(--space-xs);
+}
+
+.toolbar-hint {
+    margin-left: auto;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+
+/* Document-style editor container */
+.document-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-lg);
+    background: var(--color-bg);
+}
+
+/* Document section - clean, no boxes */
+.doc-section {
+    margin-bottom: var(--space-lg);
+}
+
+.doc-section-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-xs);
+}
+
+.doc-main {
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Document editor - minimal styling */
+.doc-editor {
+    min-height: 80px;
+}
+
+.doc-editor .ql-container {
+    border: none !important;
+    font-size: var(--font-size-base);
+}
+
+.doc-editor .ql-editor {
+    padding: 0;
+    min-height: 60px;
+    line-height: 1.7;
+}
+
+.doc-editor .ql-editor:focus {
+    outline: none;
+}
+
+.doc-editor .ql-editor.ql-blank::before {
+    color: var(--color-text-muted);
+    font-style: normal;
+}
+
+/* Hide all Quill toolbars within document (we use shared toolbar) */
+.doc-editor .ql-toolbar {
+    display: none !important;
+}
+
+/* Subsection styling - clean divider style */
+.doc-subsection {
+    padding-top: var(--space-md);
+    border-top: 1px dashed var(--color-border);
+}
+
+.doc-subsection-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xs);
+}
+
+.doc-subsection-title {
+    flex: 1;
+    background: transparent;
+    border: none;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--color-accent);
+    outline: none;
+    padding: 0;
+}
+
+.doc-subsection-title::placeholder {
+    color: var(--color-text-muted);
+}
+
+.doc-delete-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+    opacity: 0.5;
+}
+
+.doc-delete-btn:hover {
+    color: var(--color-error);
+    background: rgba(239, 68, 68, 0.1);
+    opacity: 1;
+}
+
+/* Add subsection button - minimal */
+.doc-add-subsection {
+    padding-top: var(--space-md);
+    border-top: 1px dashed var(--color-border);
+}
+
+.btn-ghost {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-ghost:hover {
+    color: var(--color-accent);
+}
+
+/* Custom Confirmation Dialog */
+.confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.confirm-dialog {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    min-width: 300px;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.confirm-message {
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-lg);
+    text-align: center;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+}
+
+.confirm-buttons .btn {
+    min-width: 100px;
+}
+
+/* Legacy toolbar - keep for backwards compatibility */
 .editor-toolbar {
     display: flex;
     align-items: center;
@@ -1295,4 +1566,502 @@ body {
     font-size: 3rem;
     display: block;
     margin-bottom: var(--space-md);
+}
+
+/* ========================================
+   Hierarchical Sections Tree
+   ======================================== */
+.section-tree-item {
+    margin-bottom: var(--space-xs);
+}
+
+.section-tree-item.parent-section {
+    margin-bottom: var(--space-sm);
+}
+
+.section-item-row {
+    display: flex;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.section-item-row:hover {
+    background-color: var(--color-bg-hover);
+}
+
+.section-item-row.active {
+    background-color: var(--color-accent-muted);
+}
+
+.section-expand-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: var(--space-xs);
+    margin-right: var(--space-xs);
+    font-size: var(--font-size-xs);
+    transition: transform var(--transition-fast);
+}
+
+.section-expand-btn.expanded {
+    transform: rotate(90deg);
+}
+
+.section-expand-placeholder {
+    width: 20px;
+    margin-right: var(--space-xs);
+}
+
+.section-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.section-children {
+    margin-left: var(--space-lg);
+    border-left: 1px solid var(--color-border);
+    padding-left: var(--space-sm);
+}
+
+.section-children.collapsed {
+    display: none;
+}
+
+.subsection-indicator {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-left: auto;
+}
+
+/* ========================================
+   Breadcrumb Navigation
+   ======================================== */
+.editor-breadcrumb {
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--font-size-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.breadcrumb-parent {
+    color: var(--color-accent);
+    cursor: pointer;
+}
+
+.breadcrumb-parent:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-separator {
+    color: var(--color-text-muted);
+}
+
+.breadcrumb-current {
+    color: var(--color-text-secondary);
+}
+
+/* ========================================
+   Quill WYSIWYG Editor Styles
+   ======================================== */
+#notes-editor-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 400px;
+}
+
+#notes-editor {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 350px;
+}
+
+/* Override Quill styles for dark theme */
+.ql-container {
+    border: none !important;
+    font-family: var(--font-family) !important;
+    font-size: var(--font-size-base) !important;
+}
+
+.ql-editor {
+    padding: var(--space-lg) !important;
+    color: var(--color-text-primary) !important;
+    line-height: 1.8 !important;
+    min-height: 300px;
+}
+
+.ql-editor.ql-blank::before {
+    color: var(--color-text-muted) !important;
+    font-style: normal !important;
+}
+
+.ql-toolbar.ql-snow {
+    border: none !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    background-color: var(--color-surface) !important;
+    padding: var(--space-sm) var(--space-md) !important;
+}
+
+.ql-toolbar .ql-stroke {
+    stroke: var(--color-text-secondary) !important;
+}
+
+.ql-toolbar .ql-fill {
+    fill: var(--color-text-secondary) !important;
+}
+
+.ql-toolbar .ql-picker {
+    color: var(--color-text-secondary) !important;
+}
+
+.ql-toolbar button:hover .ql-stroke,
+.ql-toolbar button.ql-active .ql-stroke {
+    stroke: var(--color-accent) !important;
+}
+
+.ql-toolbar button:hover .ql-fill,
+.ql-toolbar button.ql-active .ql-fill {
+    fill: var(--color-accent) !important;
+}
+
+.ql-toolbar .ql-picker-label:hover,
+.ql-toolbar .ql-picker-label.ql-active {
+    color: var(--color-accent) !important;
+}
+
+.ql-snow .ql-picker-options {
+    background-color: var(--color-surface-elevated) !important;
+    border: 1px solid var(--color-border) !important;
+}
+
+.ql-snow .ql-picker-item:hover {
+    color: var(--color-accent) !important;
+}
+
+/* Quill content styles */
+.ql-editor h1 {
+    font-size: var(--font-size-2xl) !important;
+    font-weight: 700;
+    margin-bottom: var(--space-md);
+    color: var(--color-text-primary);
+}
+
+.ql-editor h2 {
+    font-size: var(--font-size-xl) !important;
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+    color: var(--color-text-primary);
+}
+
+.ql-editor h3 {
+    font-size: var(--font-size-lg) !important;
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    color: var(--color-text-primary);
+}
+
+.ql-editor p {
+    margin-bottom: var(--space-md);
+}
+
+.ql-editor ul,
+.ql-editor ol {
+    padding-left: var(--space-lg);
+    margin-bottom: var(--space-md);
+}
+
+.ql-editor li {
+    margin-bottom: var(--space-xs);
+}
+
+.ql-editor blockquote {
+    border-left: 3px solid var(--color-accent);
+    padding-left: var(--space-md);
+    color: var(--color-text-secondary);
+    margin: var(--space-md) 0;
+}
+
+.ql-editor code {
+    background-color: var(--color-surface);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9em;
+}
+
+.ql-editor pre {
+    background-color: var(--color-surface);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    font-family: 'Fira Code', monospace;
+}
+
+.ql-editor a {
+    color: var(--color-accent);
+}
+
+/* ========================================
+   Section Checklist for Multi-Select
+   ======================================== */
+.section-checklist {
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.checklist-item:hover {
+    background-color: var(--color-bg-hover);
+}
+
+.checklist-item.indent-1 {
+    padding-left: calc(var(--space-md) + var(--space-lg));
+}
+
+.checklist-item input[type="checkbox"] {
+    margin-right: var(--space-sm);
+    accent-color: var(--color-accent);
+}
+
+.checklist-item label {
+    flex: 1;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+}
+
+.checklist-item.parent-item label {
+    font-weight: 500;
+}
+
+.checklist-actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--color-border);
+}
+
+.checklist-actions button {
+    font-size: var(--font-size-xs);
+    padding: var(--space-xs) var(--space-sm);
+}
+
+/* Checkbox label */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: var(--space-sm);
+    accent-color: var(--color-accent);
+}
+
+/* Form row for side-by-side inputs */
+.form-row {
+    display: flex;
+    gap: var(--space-md);
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Form input */
+.form-input {
+    width: 100%;
+    padding: var(--space-md);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    outline: none;
+    transition: border-color var(--transition-fast);
+}
+
+.form-input:focus {
+    border-color: var(--color-accent);
+}
+
+/* Empty state for checklist */
+.checklist-empty {
+    padding: var(--space-lg);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/* ========================================
+   Subsection Modal Styles
+   ======================================== */
+#subsection-modal .modal-body p {
+    margin-bottom: var(--space-md);
+    color: var(--color-text-secondary);
+}
+
+#subsection-modal .modal-body strong {
+    color: var(--color-accent);
+}
+
+/* ========================================
+   Reader View Modal Styles
+   ======================================== */
+.modal-fullscreen {
+    width: 90vw;
+    max-width: 900px;
+    height: 85vh;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.reader-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.reader-header h2 {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    color: var(--color-text-primary);
+}
+
+.reader-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+}
+
+.reader-actions .checkbox-label {
+    white-space: nowrap;
+}
+
+.reader-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-xl);
+    background-color: var(--color-bg);
+}
+
+/* Reader content styling */
+.reader-section {
+    margin-bottom: var(--space-2xl);
+}
+
+.reader-section-title {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-md);
+    border-bottom: 2px solid var(--color-accent);
+}
+
+.reader-subsection {
+    margin-bottom: var(--space-xl);
+    padding-left: var(--space-md);
+    border-left: 3px solid var(--color-border);
+}
+
+.reader-subsection-title {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--color-accent);
+    margin-bottom: var(--space-md);
+}
+
+.reader-content {
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+}
+
+.reader-content h1 {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    margin: var(--space-lg) 0 var(--space-md);
+    color: var(--color-text-primary);
+}
+
+.reader-content h2 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin: var(--space-md) 0 var(--space-sm);
+    color: var(--color-text-primary);
+}
+
+.reader-content p {
+    margin-bottom: var(--space-md);
+}
+
+.reader-content ul,
+.reader-content ol {
+    padding-left: var(--space-xl);
+    margin-bottom: var(--space-md);
+}
+
+.reader-content li {
+    margin-bottom: var(--space-xs);
+}
+
+.reader-content blockquote {
+    border-left: 3px solid var(--color-accent);
+    padding-left: var(--space-md);
+    color: var(--color-text-muted);
+    margin: var(--space-md) 0;
+}
+
+.reader-content code {
+    background-color: var(--color-surface);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-family: 'Fira Code', monospace;
+}
+
+.reader-content pre {
+    background-color: var(--color-surface);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    font-family: 'Fira Code', monospace;
+}
+
+.reader-empty {
+    text-align: center;
+    padding: var(--space-2xl);
+    color: var(--color-text-muted);
+}
+
+/* Form hint for number input */
+.form-hint {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-top: var(--space-xs);
 }

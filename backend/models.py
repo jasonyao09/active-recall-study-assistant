@@ -10,16 +10,23 @@ from database import Base
 
 
 class NoteSection(Base):
-    """A section/topic of notes."""
+    """A section/topic of notes. Supports 2-level hierarchy (section → subsection)."""
     __tablename__ = "note_sections"
 
     id = Column(Integer, primary_key=True, index=True)
+    parent_id = Column(Integer, ForeignKey("note_sections.id"), nullable=True)  # NULL = top-level section
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False, default="")
+    display_order = Column(Integer, default=0)  # For ordering within parent
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships
+    # Self-referential relationship for parent/children
+    parent = relationship("NoteSection", remote_side=[id], back_populates="children")
+    children = relationship("NoteSection", back_populates="parent", cascade="all, delete-orphan",
+                          order_by="NoteSection.display_order")
+
+    # Other relationships
     questions = relationship("Question", back_populates="section", cascade="all, delete-orphan")
     recall_sessions = relationship("RecallSession", back_populates="section", cascade="all, delete-orphan")
 
